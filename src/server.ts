@@ -155,6 +155,34 @@ Respond only with the JSON object. No other text before or after.
 
 
 // --- API Routes ---
+// Get all contacts
+app.get('/api/contacts', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const contacts = await ContactModel.find().sort({ name: 1 });
+        res.status(200).json({ 
+            message: "Contacts retrieved successfully",
+            data: contacts 
+        });
+    } catch (error) {
+        console.error("Error fetching contacts:", error);
+        next(error);
+    }
+});
+
+// Get all tasks
+app.get('/api/tasks', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tasks = await TaskModel.find({ isCompleted: false }).sort({ createdAt: -1 });
+        res.status(200).json({ 
+            message: "Tasks retrieved successfully",
+            data: tasks 
+        });
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+        next(error);
+    }
+});
+
 // Ensure this is correctly using app.post with the path and the async handler
 app.post('/api/process-speech', (async (req: Request<{}, {}, ProcessSpeechRequestBody>, res: Response, next: NextFunction) => {
     const { text } = req.body;
