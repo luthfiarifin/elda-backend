@@ -25,7 +25,7 @@ const GEMINI_API_KEY: string = getEnvVariable('GEMINI_API_KEY');
 
 // --- Type Definitions ---
 interface GeminiEntities { name?: string | null; phoneNumber?: string | null; relationship?: string | null; description?: string | null; time?: string | null; }
-interface GeminiResponse { intent: 'add_contact' | 'add_task' | 'get_contacts' | 'get_tasks' | 'unknown'; entities: GeminiEntities; targetCollection: 'contacts' | 'tasks' | null; error?: string; }
+interface GeminiResponse { intent: 'add_contact' | 'add_task' | 'get_contacts' | 'get_tasks' | 'unknown' | 'greeting'; entities: GeminiEntities; targetCollection: 'contacts' | 'tasks' | null; error?: string; }
 interface ProcessSpeechRequestBody { text?: string; }
 
 // --- Initialize Gemini ---
@@ -84,6 +84,7 @@ Possible Intents:
 - add_task: User wants to save a new task or reminder.
 - get_contacts: User wants to retrieve saved contacts.
 - get_tasks: User wants to retrieve saved tasks.
+- greeting: User is saying hello, hi, or similar greetings.
 - unknown: The user's request is unclear or unrelated.
 
 Entities to Extract:
@@ -91,24 +92,21 @@ Entities to Extract:
 - For 'add_task': description (string), time (string, optional)
 - For 'get_contacts': name (string, optional, if searching for a specific contact)
 - For 'get_tasks': time (string, optional, e.g., "today", "morning"), description (string, optional, keywords)
+- For 'greeting': No entities needed
 
-Based on the intent, determine the target data collection: 'contacts' or 'tasks'.
+Based on the intent, determine the target data collection: 'contacts', 'tasks', or null for greeting/unknown.
 
 Respond ONLY with a JSON object containing:
 1.  'intent': One of the possible intents listed above.
 2.  'entities': An object containing the extracted entities (use null if an entity is not found).
-3.  'targetCollection': Either 'contacts', 'tasks', or null if the intent is 'unknown'.
+3.  'targetCollection': Either 'contacts', 'tasks', or null if the intent is 'greeting' or 'unknown'.
 
-Example Input: "Please add my son John Doe to my contacts, his number is 555-111-2222"
+Example Input: "Hello there!"
 Example Output:
 {
-  "intent": "add_contact",
-  "entities": {
-    "name": "John Doe",
-    "phoneNumber": "555-111-2222",
-    "relationship": "son"
-  },
-  "targetCollection": "contacts"
+  "intent": "greeting",
+  "entities": {},
+  "targetCollection": null
 }
 
 Now, analyze the user request: "${text}"
@@ -132,6 +130,7 @@ Respond only with the JSON object. No other text before or after.
         const parsedJson = extractJsonFromString(responseText);
 
         if (!parsedJson) {
+            console.error("Failed to extract or parse valid JSON from Gemini response.");
             throw new Error("Failed to extract or parse valid JSON from Gemini response.");
         }
 
@@ -167,11 +166,14 @@ app.post('/api/process-speech', (async (req: Request<{}, {}, ProcessSpeechReques
     try {
         const { intent, entities, targetCollection, error: geminiError } = await processTextWithGemini(text);
 
-        if (geminiError || intent === 'unknown') {
+        if (geminiError) {
             console.error("Gemini processing issue:", geminiError || "Unknown intent received");
             const userMessage = geminiError ? "Sorry, I had trouble understanding that right now." : "I'm sorry, I didn't quite understand your request.";
             const statusCode = geminiError ? 500 : 400;
             return res.status(statusCode).json({ message: userMessage, details: geminiError || 'Unknown intent' });
+        } else if (intent === 'unknown' || intent === 'greeting') {
+            const userMessage = "Hello! I'm here to help you manage your contacts and tasks. You can ask me to:\n- Add a contact\n- Add a task\n- Get your contacts\n- Get your tasks\nWhat would you like to do?";
+            return res.status(200).json({ message: userMessage });
         }
 
         console.log(`Processing Intent: ${intent}, Target: ${targetCollection}, Entities:`, entities);
