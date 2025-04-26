@@ -24,7 +24,7 @@ const MONGODB_URI: string = getEnvVariable('MONGODB_URI');
 const GEMINI_API_KEY: string = getEnvVariable('GEMINI_API_KEY');
 
 // --- Type Definitions ---
-interface GeminiEntities { name?: string | null; phoneNumber?: string | null; relationship?: string | null; description?: string | null; time?: string | null; }
+interface GeminiEntities { name?: string | null; phoneNumber?: string | null; relationship?: string | null; description?: string | null; time?: string | null; prompt?: string | null; }
 interface GeminiResponse { intent: 'add_contact' | 'add_task' | 'get_contacts' | 'get_tasks' | 'unknown' | 'greeting'; entities: GeminiEntities; targetCollection: 'contacts' | 'tasks' | null; error?: string; }
 interface ProcessSpeechRequestBody { text?: string; }
 
@@ -219,7 +219,7 @@ app.post('/api/process-speech', (async (req: Request<{}, {}, ProcessSpeechReques
             switch (intent) {
                 case 'add_contact':
                     if (entities.name && entities.phoneNumber) {
-                        const newContact = new ContactModel({ name: entities.name, phoneNumber: entities.phoneNumber, relationship: entities.relationship });
+                        const newContact = new ContactModel({ name: entities.name, phoneNumber: entities.phoneNumber, relationship: entities.relationship, prompt: text });
                         await newContact.save();
                         responseMessage = `OK. I've added ${entities.name} to your contacts.`;
                     } else {
@@ -229,7 +229,7 @@ app.post('/api/process-speech', (async (req: Request<{}, {}, ProcessSpeechReques
                     break;
                 case 'add_task':
                     if (entities.description) {
-                        const newTask = new TaskModel({ description: entities.description, time: entities.time || undefined });
+                        const newTask = new TaskModel({ description: entities.description, time: entities.time || undefined, prompt: text });
                         await newTask.save();
                         responseMessage = `OK. I've added the task: ${entities.description}.`;
                     } else {

@@ -4,6 +4,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IContact extends Document {
     name: string;
     phoneNumber: string;
+    prompt: string;
     relationship?: string; // Optional field
     // userId?: mongoose.Schema.Types.ObjectId; // Uncomment if using user linking
     createdAt: Date;
@@ -17,6 +18,11 @@ const ContactSchema: Schema<IContact> = new Schema({
         trim: true,
     },
     phoneNumber: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    prompt: {
         type: String,
         required: true,
         trim: true,

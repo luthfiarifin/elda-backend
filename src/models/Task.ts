@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 // Interface representing a document in MongoDB.
 export interface ITask extends Document {
+    prompt: string;
     description: string;
     time?: string; // Optional field
     isCompleted: boolean;
@@ -11,6 +12,11 @@ export interface ITask extends Document {
 
 // Schema definition
 const TaskSchema: Schema<ITask> = new Schema({
+    prompt: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     description: {
         type: String,
         required: true,
