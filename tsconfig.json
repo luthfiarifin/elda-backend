@@ -1,0 +1,23 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2016", // Target modern Node.js versions
+    "module": "CommonJS", // Standard for Node.js
+    "outDir": "./dist", // Output directory for compiled JavaScript
+    "rootDir": "./src", // Source directory for TypeScript files
+    "strict": true, // Enable all strict type-checking options
+    "esModuleInterop": true, // Allows default imports from commonjs modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references
+    "resolveJsonModule": true, // Allow importing JSON files
+    "moduleResolution": "node" // Specify module resolution strategy
+    // "sourceMap": true, // Optional: Generate source maps for debugging
+  },
+  "include": [
+    "src/**/*"
+  ], // Which files to include
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ] // Which files to exclude
+}
